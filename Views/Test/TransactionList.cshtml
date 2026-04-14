@@ -1,0 +1,78 @@
+@model List<TransactionViewModel>
+
+@if (Model == null || !Model.Any())
+{
+    <div class="alert alert-info">No hay transacciones para mostrar</div>
+}
+else
+{
+    <div class="table-responsive">
+        <table class="table table-striped">
+            <thead class="table-dark">
+                <tr>
+                    <th>Fecha</th>
+                    <th>Parte</th>
+                    <th>Cantidad</th>
+                    <th>Personas</th>
+                    <th>Detalles</th>
+                    <th>Comentarios</th>
+                    <th>Fotos</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var trans in Model)
+                {
+                    <tr>
+                        <td>@trans.TransactionDate.ToString("yyyy-MM-dd HH:mm")</td>
+                        <td>
+                            <strong>@trans.PartNumber</strong><br>
+                            <small>@trans.PartType</small>
+                        </td>
+                        <td class="text-center fw-bold">@trans.Quantity</td>
+                        <td>
+                            @if (trans.Type == TransactionType.Incoming)
+                            {
+                                <small>
+                                    @if (!string.IsNullOrEmpty(trans.OrderedBy)) { <span>📦 Ordenó: @trans.OrderedBy</span><br> }
+                                    @if (!string.IsNullOrEmpty(trans.BoughtBy)) { <span>💰 Compró: @trans.BoughtBy</span><br> }
+                                    @if (!string.IsNullOrEmpty(trans.ReceivedBy)) { <span>📥 Recibió: @trans.ReceivedBy</span> }
+                                </small>
+                            }
+                            else
+                            {
+                                <small>
+                                    @if (!string.IsNullOrEmpty(trans.TruckNumber)) { <span>🚚 Camión: @trans.TruckNumber</span><br> }
+                                    @if (!string.IsNullOrEmpty(trans.RepairedBy)) { <span>🔧 Reparó: @trans.RepairedBy</span> }
+                                </small>
+                            }
+                        </td>
+                        <td>
+                            @if (trans.Type == TransactionType.Incoming && !string.IsNullOrEmpty(trans.Seller))
+                            {
+                                <small>Vendedor: @trans.Seller</small>
+                            }
+                        </td>
+                        <td>
+                            @if (!string.IsNullOrEmpty(trans.EvidenceComments))
+                            {
+                                <button class="btn btn-sm btn-outline-info" 
+                                        onclick='showComment(@trans.TransactionId, @Html.Raw(Json.Serialize(trans.EvidenceComments)))'>
+                                    <i class="bi bi-chat"></i> Ver comentario
+                                </button>
+                            }
+                        </td>
+                        <td>
+                            @if (trans.PhotoCount > 0)
+                            {
+                                <button class="btn btn-sm btn-outline-primary" 
+                                        onclick='showPhotos(@trans.TransactionId, @Html.Raw(Json.Serialize(trans.Photos)))'>
+                                    <i class="bi bi-images"></i> @trans.PhotoCount
+                                </button>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}

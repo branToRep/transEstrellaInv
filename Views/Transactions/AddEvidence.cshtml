@@ -1,0 +1,227 @@
+@model TransactionWithEvidenceViewModel
+
+@{
+    ViewData["Title"] = $"Add Evidence - Transaction #{Model.Id}";
+}
+
+<div class="container mt-4">
+    <div class="card">
+        <div class="card-header bg-primary text-white">
+            <h2>Add Evidence for Transaction #@Model.Id</h2>
+        </div>
+        
+        <div class="card-body">
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5>Transaction Details</h5>
+                        </div>
+                        <div class="card-body">
+                            <dl class="row">
+                                <dt class="col-sm-4">Date:</dt>
+                                <dd class="col-sm-8">@Model.TransactionDate.ToString("yyyy-MM-dd HH:mm")</dd>
+                                
+                                <dt class="col-sm-4">Type:</dt>
+                                <dd class="col-sm-8">
+                                    @if (Model.Type == TransactionType.Incoming)
+                                    {
+                                        <span class="badge bg-success">Incoming</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-warning">Outgoing</span>
+                                    }
+                                </dd>
+                                
+                                <dt class="col-sm-4">Part:</dt>
+                                <dd class="col-sm-8">@Model.PartType (@Model.PartNumber)</dd>
+                                
+                                <dt class="col-sm-4">Batch ID:</dt>
+                                <dd class="col-sm-8">
+                                    <a href="/Parts/BatchDetails/@Model.BatchId">#@Model.BatchId</a>
+                                </dd>
+                                
+                                <dt class="col-sm-4">Quantity:</dt>
+                                <dd class="col-sm-8">@Model.Quantity</dd>
+                            </dl>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5>Current Evidence</h5>
+                        </div>
+                        <div class="card-body">
+                            @if (!string.IsNullOrEmpty(Model.EvidenceComments))
+                            {
+                                <p><strong>Comments:</strong></p>
+                                <div class="alert alert-secondary">
+                                    @Model.EvidenceComments
+                                </div>
+                            }
+                            
+                            <p><strong>Photos:</strong> @Model.Photos.Count</p>
+                            
+                            @if (Model.Photos.Any())
+                            {
+                                <a href="#photoGallery" data-bs-toggle="collapse" class="btn btn-sm btn-outline-primary">
+                                    Show Photos
+                                </a>
+                                
+                                <div class="collapse mt-3" id="photoGallery">
+                                    <div class="row">
+                                        @foreach (var photo in Model.Photos.Take(3))
+                                        {
+                                            <div class="col-md-4 mb-2">
+                                                <a href="@photo.FilePath" target="_blank">
+                                                    <img src="@photo.ThumbnailPath" 
+                                                         class="img-thumbnail" 
+                                                         alt="@photo.Description"
+                                                         style="max-height: 100px;">
+                                                </a>
+                                            </div>
+                                        }
+                                    </div>
+                                    @if (Model.Photos.Count > 3)
+                                    {
+                                        <p class="text-muted">+ @(Model.Photos.Count - 3) more photos</p>
+                                    }
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <form asp-action="AddEvidence" method="post" enctype="multipart/form-data">
+                @Html.AntiForgeryToken()
+                <input type="hidden" asp-for="Id" />
+                
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="form-group mb-3">
+                            <label asp-for="NewEvidenceComments" class="form-label">Additional Comments</label>
+                            <textarea asp-for="NewEvidenceComments" class="form-control" rows="4" 
+                                      placeholder="Add any comments, notes, or observations about this transaction..."></textarea>
+                            <span asp-validation-for="NewEvidenceComments" class="text-danger"></span>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-12">
+                        <div class="form-group mb-3">
+                            <label asp-for="NewPhotoFiles" class="form-label">Upload New Photos</label>
+                            <input asp-for="NewPhotoFiles" type="file" multiple class="form-control" 
+                                   accept=".jpg,.jpeg,.png,.gif,.bmp,.webp" />
+                            <small class="form-text text-muted">
+                                Maximum 10MB per file. Allowed formats: JPG, PNG, GIF, BMP, WebP
+                            </small>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-12">
+                        <div class="form-group mb-3">
+                            <label asp-for="PhotoDescriptions" class="form-label">Photo Descriptions (optional)</label>
+                            <input asp-for="PhotoDescriptions" class="form-control" 
+                                   placeholder="e.g., Serial number close-up, Packaging condition, Installation photo" />
+                            <small class="form-text text-muted">
+                                Enter descriptions in the same order as the uploaded photos
+                            </small>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-group mt-4">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-upload"></i> Submit Evidence
+                    </button>
+                    <a asp-action="Details" asp-route-id="@Model.Id" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i> Back to Transaction
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+
+<!--
+@{
+    ViewData["Title"] = "Add Evidence";
+}
+
+<div class="container">
+    <h1>Add Evidence for Transaction #@Model.Id</h1>
+    
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5>Transaction Details</h5>
+        </div>
+        <div class="card-body">
+            <dl class="row">
+                <dt class="col-sm-3">Date:</dt>
+                <dd class="col-sm-9">@Model.TransactionDate.ToString("yyyy-MM-dd")</dd>
+                
+                <dt class="col-sm-3">Part:</dt>
+                <dd class="col-sm-9">@Model.PartType (@Model.PartNumber)</dd>
+                
+                <dt class="col-sm-3">Quantity:</dt>
+                <dd class="col-sm-9">@Model.Quantity</dd>
+            </dl>
+        </div>
+    </div>
+    
+    <form method="post" enctype="multipart/form-data" id="evidenceForm">
+        @Html.AntiForgeryToken()
+        
+        <div class="form-group mb-3">
+            <label for="comments">Comments</label>
+            <textarea class="form-control" id="comments" name="newEvidenceComments" 
+                      rows="3" placeholder="Add comments..."></textarea>
+        </div>
+        
+        <div class="form-group mb-3">
+            <label for="photoFiles">Upload Photos</label>
+            <input type="file" class="form-control" id="photoFiles" 
+                   name="newPhotoFiles" multiple accept=".jpg,.jpeg,.png,.gif,.pdf">
+        </div>
+        
+        <div class="form-group mb-3">
+            <label for="photoDescriptions">Photo Descriptions (optional)</label>
+            <input type="text" class="form-control" id="photoDescriptions" 
+                   name="photoDescriptions" placeholder="Description for each photo, separated by commas">
+        </div>
+        
+        <button type="submit" class="btn btn-primary">Submit Evidence</button>
+        <a href="/" class="btn btn-secondary">Cancel</a>
+    </form>
+</div>
+
+@section Scripts {
+    <script>
+        document.getElementById('evidenceForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(this);
+            
+            try {
+                const response = await fetch('/Transactions/AddEvidence/@Model.Id', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                if (response.ok) {
+                    alert('Evidence submitted successfully!');
+                    window.location.href = '/';
+                } else {
+                    alert('Error submitting evidence');
+                }
+            } catch (error) {
+                alert('Error: ' + error.message);
+            }
+        });
+    </script>
+}
+-->

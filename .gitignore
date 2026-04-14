@@ -1,0 +1,7 @@
+# Build outputs
+/bin/
+/obj/
+/appsettings.Development
+/appsettings
+/appsettings.Development.json
+/appsettings.json

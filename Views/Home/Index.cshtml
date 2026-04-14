@@ -1,0 +1,82 @@
+﻿@{
+    ViewData["Title"] = "Truck Parts Inventory";
+}
+
+<div class="container mt-5">
+    <div class="text-center mb-5">
+        <h1 class="display-4">Sistema de inventario</h1>
+        <p class="lead">Gestión de inventario de partes para camiones</p>
+    </div>
+    
+    <div class="row">
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                <div class="card-body text-center">
+                    <h3 class="card-title">->Entrada de Partes</h3>
+                    <p class="card-text">Registrar nuevas partes recibidas en inventario</p>
+                    <a href="*" class="btn btn-primary btn-lg">
+                        <i class="fas fa-arrow-down"></i> Nueva Entrada
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                <div class="card-body text-center">
+                    <h3 class="card-title"><-Salida de Partes</h3>
+                    <p class="card-text">Registrar partes sacadas del inventario</p>
+                    <a href="#" class="btn btn-warning btn-lg">
+                        <i class="fas fa-arrow-up"></i> Nueva Salida
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                <div class="card-body text-center">
+                    <h3 class="card-title">🧪 Pruebas</h3>
+                    <p class="card-text">Páginas de prueba</p>
+                    <a href="/test" class="btn btn-info btn-lg">
+                        <i class="fas fa-camera"></i> Prueba de Entrada / Salida
+                    </a>
+                    <br><br>
+                    <a href="test/check-transactions" class="btn btn-success btn-sm"> 
+                        Revisar transacciones
+                    </a>
+                    <br><br>
+                    <a href="/test/transactions" class="btn btn-secondary btn-sm">
+                        Transacciones por tipo e imagen
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row mt-4">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-body">
+                    <h4 class="card-title">📊 Inventario</h4>
+                    <p>Ver y gestionar el inventario de partes</p>
+                    <a href="/test/inventory-view" class="btn btn-outline-primary">
+                        Ver Inventario
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-body">
+                    <h4 class="card-title">📋 Transacciones</h4>
+                    <p>Historial de entradas y salidas</p>
+                    <a href="/test/transactions-view" class="btn btn-outline-secondary">
+                        Ver Transacciones
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

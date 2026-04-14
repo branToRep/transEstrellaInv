@@ -1,0 +1,232 @@
+@model IncomingTransactionViewModel
+@{
+    ViewData["Title"] = "Incoming Parts";
+}
+
+<div class="container mt-4">
+    <div class="card">
+        <div class="card-header bg-primary text-white">
+            <h2>📦 Incoming Parts - New Batch</h2>
+        </div>
+        
+        <div class="card-body">
+            <div class="alert alert-info">
+                <strong>Choose an option:</strong> Create a new part definition OR use an existing part.
+            </div>
+            
+            <form asp-action="Create" method="post" id="incomingForm">
+                @Html.AntiForgeryToken()
+                <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                
+                <!-- Option selection -->
+                <div class="form-group mb-4">
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" name="UseExistingPart" 
+                               id="optionNew" value="false" checked="checked"
+                               onchange="togglePartOptions()">
+                        <label class="form-check-label" for="optionNew">➕ Create New Part</label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" name="UseExistingPart" 
+                               id="optionExisting" value="true"
+                               onchange="togglePartOptions()">
+                        <label class="form-check-label" for="optionExisting">📋 Use Existing Part</label>
+                    </div>
+                </div>
+                
+                <!-- Option A: Create New Part -->
+                <div id="newPartSection">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label asp-for="PartNumber" class="control-label">Part Number *</label>
+                                <input asp-for="PartNumber" class="form-control" 
+                                       placeholder="Ej: BP-1234" id="partNumber"
+                                       onblur="checkPartNumber()">
+                                <span asp-validation-for="PartNumber" class="text-danger"></span>
+                                <small id="partNumberWarning" class="text-warning" style="display:none;"></small>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label asp-for="PartType" class="control-label">Part Type/Description *</label>
+                                <input asp-for="PartType" class="form-control" 
+                                       placeholder="Ej: Brake Pads - Front">
+                                <span asp-validation-for="PartType" class="text-danger"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Option B: Use Existing Part -->
+                <div id="existingPartSection" style="display:none;">
+                    <div class="form-group">
+                        <label asp-for="SelectedPartDefinitionId" class="control-label">Select Existing Part *</label>
+                        <select asp-for="SelectedPartDefinitionId" class="form-control" 
+                                asp-items="@(new SelectList(ViewBag.ExistingParts, "Id", "PartNumber"))">
+                            <option value="">-- Select a part --</option>
+                        </select>
+                        <span asp-validation-for="SelectedPartDefinitionId" class="text-danger"></span>
+                    </div>
+                    
+                    <div id="selectedPartDetails" class="alert alert-secondary mt-2" style="display:none;">
+                        <strong>Selected Part Details:</strong>
+                        <span id="selectedPartNumber"></span> - 
+                        <span id="selectedPartType"></span>
+                    </div>
+                </div>
+                
+                <!-- Common fields for both options -->
+                <hr />
+                <h4>Batch Details</h4>
+                
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label asp-for="Quantity" class="control-label">Quantity *</label>
+                            <input asp-for="Quantity" class="form-control" type="number" min="1" value="1">
+                            <span asp-validation-for="Quantity" class="text-danger"></span>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label asp-for="Price" class="control-label">Price *</label>
+                            <input asp-for="Price" class="form-control" type="number" step="0.01" value="0.00">
+                            <span asp-validation-for="Price" class="text-danger"></span>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label asp-for="Currency" class="control-label">Currency *</label>
+                            <select asp-for="Currency" class="form-control">
+                                <option value="MXN">MXN - Mexican Peso</option>
+                                <option value="USD">USD - US Dollar</option>
+                            </select>
+                            <span asp-validation-for="Currency" class="text-danger"></span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label asp-for="RackPosition" class="control-label">Rack Position *</label>
+                            <input asp-for="RackPosition" class="form-control" placeholder="Ej: A12">
+                            <span asp-validation-for="RackPosition" class="text-danger"></span>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label asp-for="ReceivedDate" class="control-label">Received Date</label>
+                            <input asp-for="ReceivedDate" class="form-control" type="date" 
+                                   value="@DateTime.Now.ToString("yyyy-MM-dd")">
+                            <span asp-validation-for="ReceivedDate" class="text-danger"></span>
+                        </div>
+                    </div>
+                </div>
+                
+                <hr />
+                <h4>Order Information</h4>
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label asp-for="PartReceivedBy" class="control-label">Received By *</label>
+                            <input asp-for="PartReceivedBy" class="form-control">
+                            <span asp-validation-for="PartReceivedBy" class="text-danger"></span>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label asp-for="TruckNumber" class="control-label">Truck Number</label>
+                            <input asp-for="TruckNumber" class="form-control">
+                            <span asp-validation-for="TruckNumber" class="text-danger"></span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-group mt-4">
+                    <button type="submit" class="btn btn-primary btn-lg">
+                        <i class="fas fa-save"></i> Create Transaction
+                    </button>
+                    <a href="@Url.Action("Index", "Home")" class="btn btn-secondary btn-lg">
+                        <i class="fas fa-times"></i> Cancel
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    
+    <script>
+        // Toggle between new part and existing part options
+        function togglePartOptions() {
+            const useExisting = document.querySelector('input[name="UseExistingPart"]:checked').value === 'true';
+            
+            document.getElementById('newPartSection').style.display = useExisting ? 'none' : 'block';
+            document.getElementById('existingPartSection').style.display = useExisting ? 'block' : 'none';
+            
+            // Update validation attributes
+            document.getElementById('PartNumber').required = !useExisting;
+            document.getElementById('PartType').required = !useExisting;
+            document.getElementById('SelectedPartDefinitionId').required = useExisting;
+        }
+        
+        // Check if part number already exists
+        async function checkPartNumber() {
+            const partNumber = document.getElementById('partNumber').value;
+            const warning = document.getElementById('partNumberWarning');
+            
+            if (!partNumber) {
+                warning.style.display = 'none';
+                return;
+            }
+            
+            try {
+                const response = await fetch(`/Incoming/CheckPartNumber?partNumber=${encodeURIComponent(partNumber)}`);
+                const data = await response.json();
+                
+                if (data.exists) {
+                    warning.style.display = 'block';
+                    warning.innerHTML = '⚠️ This part number already exists! Consider using the "Use Existing Part" option.';
+                } else {
+                    warning.style.display = 'none';
+                }
+            } catch (error) {
+                console.error('Error checking part number:', error);
+            }
+        }
+        
+        // When an existing part is selected, show its details
+        document.getElementById('SelectedPartDefinitionId').addEventListener('change', async function() {
+            const partId = this.value;
+            const detailsDiv = document.getElementById('selectedPartDetails');
+            const partNumberSpan = document.getElementById('selectedPartNumber');
+            const partTypeSpan = document.getElementById('selectedPartType');
+            
+            if (!partId) {
+                detailsDiv.style.display = 'none';
+                return;
+            }
+            
+            try {
+                const response = await fetch(`/Incoming/GetPartDetails/${partId}`);
+                const part = await response.json();
+                
+                partNumberSpan.textContent = part.partNumber;
+                partTypeSpan.textContent = part.partType;
+                detailsDiv.style.display = 'block';
+            } catch (error) {
+                console.error('Error fetching part details:', error);
+            }
+        });
+    </script>
+}

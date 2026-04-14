@@ -1,0 +1,726 @@
+@model transEstrellaInv.Models.PartCreateViewModel
+@using transEstrellaInv.Models
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inventory Management - New Entry</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .form-container {
+            max-width: 1200px;
+            margin: 30px auto;
+            padding: 25px;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        }
+        .nav-tabs .nav-link {
+            font-weight: 600;
+            color: #495057;
+            border: none;
+            padding: 12px 25px;
+        }
+        .nav-tabs .nav-link.active {
+            color: #0d6efd;
+            background: white;
+            border-bottom: 3px solid #0d6efd;
+        }
+        .form-section {
+            padding: 25px 0;
+            border-bottom: 1px solid #e9ecef;
+        }
+        .form-section:last-child {
+            border-bottom: none;
+        }
+        .section-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 20px;
+            color: #212529;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .section-title i {
+            color: #0d6efd;
+            font-size: 1.5rem;
+        }
+        .required-field label::after {
+            content: " *";
+            color: #dc3545;
+            font-weight: bold;
+        }
+        .currency-input-group {
+            display: flex;
+            gap: 10px;
+        }
+        .currency-select {
+            max-width: 100px;
+        }
+        .photo-preview {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        .photo-preview-item {
+            position: relative;
+            width: 100px;
+            height: 100px;
+            border: 2px solid #dee2e6;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        .photo-preview-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .photo-preview-item .remove-photo {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background: rgba(220,53,69,0.9);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+        .btn-submit {
+            padding: 12px 35px;
+            font-weight: 600;
+            margin-top: 20px;
+        }
+        .alert-info {
+            background-color: #e7f1ff;
+            border-color: #b8daff;
+            color: #004085;
+        }
+        .exchange-rate-badge {
+            background: #f8f9fa;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            border: 1px solid #dee2e6;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .batch-info {
+            background-color: #f0f7ff;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .definition-card {
+            background-color: #f8f9fa;
+            border-left: 4px solid #0d6efd;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="form-container">
+            <h2 class="mb-4 text-center">
+                <i class="bi bi-box-seam"></i> Sistema de manejo de inventario
+            </h2>
+            <p class="text-muted text-center mb-4">Entrada, salida y gestión de transacciones de inventario</p>
+
+            <!-- Tabs -->
+            <ul class="nav nav-tabs mb-4" id="myTab" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="part-tab" data-bs-toggle="tab" data-bs-target="#part" type="button" role="tab">
+                        <i class="bi bi-gear"></i> Nueva pieza (Definición + Lote)
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="batch-tab" data-bs-toggle="tab" data-bs-target="#batch" type="button" role="tab">
+                        <i class="bi bi-layers"></i> Nuevo lote (Pieza existente)
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="transaction-tab" data-bs-toggle="tab" data-bs-target="#transaction" type="button" role="tab">
+                        <i class="bi bi-arrow-left-right"></i> Nueva transacción
+                    </button>
+                </li>
+            </ul>
+
+            <!-- Tab Content -->
+            <div class="tab-content" id="myTabContent">
+                
+                <!-- ==================== NEW PART + FIRST BATCH ==================== -->
+                <div class="tab-pane fade show active" id="part" role="tabpanel">
+                    <form asp-action="Test" asp-controller="Test" method="post" enctype="multipart/form-data">
+                        <!-- Part Definition -->
+                        <div class="form-section">
+                            <div class="section-title">
+                                <i class="bi bi-info-circle"></i>
+                                Definición de pieza
+                            </div>
+                            <div class="row g-4">
+                                <div class="col-md-6 required-field">
+                                    <label asp-for="PartNumber" class="form-label">Número de parte</label>
+                                    <input asp-for="PartNumber" class="form-control" placeholder="e.g., ENG-001" required>
+                                    <span asp-validation-for="PartNumber" class="text-danger"></span>
+                                    <div class="form-text">Identificador único de la pieza</div>
+                                </div>
+                                <div class="col-md-6">
+                                    <label asp-for="PartType" class="form-label">Tipo de pieza / Descripción</label>
+                                    <input asp-for="PartType" class="form-control" placeholder="e.g., Motor, Frenos, Filtro">
+                                    <span asp-validation-for="PartType" class="text-danger"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- First Batch -->
+                        <div class="form-section">
+                            <div class="section-title">
+                                <i class="bi bi-box"></i>
+                                Primer lote de inventario
+                            </div>
+                            
+                            <!-- Exchange Rate Status -->
+                            <div class="exchange-rate-badge mb-3">
+                                <i class="bi bi-info-circle"></i>
+                                Tasa USD/MXN actual: <strong>@ViewBag.CurrentRate?.ToString("N2")</strong> 
+                                <span class="text-muted">(al @DateTime.Now.ToString("yyyy-MM-dd"))</span>
+                            </div>
+                            
+                            <div class="row g-4">
+                                <div class="col-md-6 required-field">
+                                    <label asp-for="Quantity" class="form-label">Cantidad inicial</label>
+                                    <input asp-for="Quantity" class="form-control" type="number" min="0" step="1" placeholder="0" required>
+                                    <span asp-validation-for="Quantity" class="text-danger"></span>
+                                </div>
+                                
+                                <div class="row">
+                                    <div class="col-md-12">
+                                        <div class="form-check mb-3">
+                                            <input type="checkbox" class="form-check-input" id="IsExistingStock" name="IsExistingStock" value="true">
+                                            <label class="form-check-label" for="IsExistingStock">
+                                                <i class="bi bi-box-seam"></i> El stock ya se encuentra en almacen
+                                            </label>
+                                            <small class="form-text text-muted">
+                                                Activar si las piezas ya estan en almacén
+                                                Dejar desactivado para piezas que aún no llegan
+                                            </small>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-8 required-field">
+                                    <label asp-for="Price" class="form-label">Precio unitario</label>
+                                    <div class="currency-input-group">
+                                        <input asp-for="Price" class="form-control" type="number" step="0.01" min="0.01" placeholder="0.00" required style="flex: 1;">
+                                        <select asp-for="Currency" class="form-select currency-select" required>
+                                            <option value="">Moneda</option>
+                                            <option value="USD" selected>USD</option>
+                                            <option value="MXN">MXN</option>
+                                        </select>
+                                    </div>
+                                    <span asp-validation-for="Price" class="text-danger"></span>
+                                </div>
+
+                                <div class="col-md-4">
+                                    <label class="form-label">Fecha de compra</label>
+                                    <input name="PurchaseDate" class="form-control" type="date" value="@DateTime.Now.AddDays(-7).ToString("yyyy-MM-dd")">
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Vendedor</label>
+                                    <input name="Seller" class="form-control" placeholder="e.g., AutoParts Inc.">
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Ordenado por</label>
+                                    <input name="PartOrderedBy" class="form-control" placeholder="Nombre de quien ordenó">
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Comprado por</label>
+                                    <input name="PartBoughtBy" class="form-control" id="PartBoughtBy" placeholder="Nombre de quien compró">
+                                </div>
+                                
+                                <!-- Currency Conversion Preview  -->
+                                <div class="col-md-4 d-flex align-items-center">
+                                    <div class="bg-light p-3 rounded w-100">
+                                        <small class="text-muted d-block">Valores convertidos:</small>
+                                        <strong id="preview-usd">USD: $0.00</strong><br>
+                                        <strong id="preview-mxn">MXN: $0.00</strong>
+                                    </div>
+                                </div>
+                                
+
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary btn-submit">
+                            <i class="bi bi-save"></i> Crear pieza y lote inicial
+                        </button>
+                    </form>
+                </div>
+
+                <!-- ==================== NEW BATCH (EXISTING PART) ==================== -->
+                <div class="tab-pane fade" id="batch" role="tabpanel">
+                    <form asp-action="CreateBatch" asp-controller="Parts" method="post">
+                        <div class="form-section">
+                            <div class="section-title">
+                                <i class="bi bi-layers"></i>
+                                Nuevo lote (Pieza existente)
+                            </div>
+                            
+                            <!-- Part Selection -->
+                            <div class="definition-card">
+                                <h6>Seleccionar pieza</h6>
+                                <select name="PartDefinitionId" class="form-select" required>
+                                    <option value="">-- Selecciona una pieza --</option>
+                                    @if (ViewBag.PartDefinitions != null && ViewBag.PartDefinitions.Count > 0)
+                                    {
+                                        @foreach (var def in ViewBag.PartDefinitions)
+                                        {
+                                            <option value="@def.Id">
+                                                @def.PartNumber - @def.PartType
+                                            </option>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <option value="" disabled>⚠️ No hay piezas registradas</option>
+                                    }
+                                </select>
+                                @if (ViewBag.PartDefinitions == null || ViewBag.PartDefinitions.Count == 0)
+                                {
+                                    <div class="text-warning mt-2">
+                                        <small>Primero debes crear una pieza en la pestaña "Nueva pieza"</small>
+                                    </div>
+                                }
+                            </div>
+                            <br>
+
+                            <div class="exchange-rate-badge mb-3">
+                                <i class="bi bi-info-circle"></i>
+                                Tasa USD/MXN actual: <strong>@ViewBag.CurrentRate?.ToString("N2")</strong> 
+                                <span class="text-muted">(al @DateTime.Now.ToString("yyyy-MM-dd"))</span>
+                            </div>
+                            <!-- Order Details -->
+                            <div class="row g-4 mt-3">
+                                <div class="col-md-4">
+                                    <label class="form-label">Cantidad ordenada</label>
+                                    <input name="OrderedQuantity" class="form-control" type="number" min="1" required>
+                                </div>
+
+                                <div class="col-md-4">
+                                    <label class="form-label">Fecha de compra</label>
+                                    <input name="PurchaseDate" class="form-control" type="date" value="@DateTime.Now.AddDays(-7).ToString("yyyy-MM-dd")">
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Vendedor</label>
+                                    <input name="Seller" class="form-control" placeholder="e.g., AutoParts Inc.">
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Ordenado por</label>
+                                    <input name="PartOrderedBy" class="form-control" placeholder="Nombre de quien ordenó">
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Comprado por</label>
+                                    <input name="PartBoughtBy" class="form-control" id="PartBoughtBy" placeholder="Nombre de quien compró">
+                                </div>
+
+                                <div class="col-md-8 required-field">
+                                    <label asp-for="Price" class="form-label">Precio unitario</label>
+                                    <div class="currency-input-group">
+                                        <input asp-for="Price" class="form-control" type="number" step="0.01" min="0.01" placeholder="0.00" required style="flex: 1;">
+                                        <select asp-for="Currency" class="form-select currency-select" required>
+                                            <option value="">Moneda</option>
+                                            <option value="USD" selected>USD</option>
+                                            <option value="MXN">MXN</option>
+                                        </select>
+                                    </div>
+                                    <span asp-validation-for="Price" class="text-danger"></span>
+                                </div>
+
+                                <div class="col-md-12">
+                                    <div class="bg-light p-3 rounded">
+                                        <small class="text-muted d-block">Valores convertidos:</small>
+                                        <strong id="batch-preview-usd">USD: $0.00</strong> |
+                                        <strong id="batch-preview-mxn">MXN: $0.00</strong>
+                                    </div>
+                                </div>
+                            
+                            </div>
+
+                            <button type="submit" class="btn btn-primary btn-submit mt-4">
+                                <i class="bi bi-cart-check"></i> Registrar orden de compra
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- ==================== TRANSACTION FORM ==================== -->
+                <div class="tab-pane fade" id="transaction" role="tabpanel">
+                    <form asp-action="CreateTransaction" asp-controller="Test" method="post" enctype="multipart/form-data">
+                        <!-- Transaction Type Selection -->
+                        <div class="form-section">
+                            <div class="section-title">
+                                <i class="bi bi-arrow-repeat"></i>
+                                Tipo de transacción
+                            </div>
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <div class="btn-group w-100" role="group">
+                                        <input type="radio" class="btn-check" name="Type" id="type-incoming" value="Incoming" autocomplete="off" checked>
+                                        <label class="btn btn-outline-success" for="type-incoming">
+                                            <i class="bi bi-box-arrow-in-down"></i> Entrada (Compra / Recibida)
+                                        </label>
+                                        
+                                        <input type="radio" class="btn-check" name="Type" id="type-outgoing" value="Outgoing" autocomplete="off">
+                                        <label class="btn btn-outline-danger" for="type-outgoing">
+                                            <i class="bi bi-box-arrow-up"></i> Salida (Reparación / Movimiento)
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Batch Selection -->
+                        <div class="form-section">
+                            <div class="section-title">
+                                <i class="bi bi-boxes"></i>
+                                Selección de lote
+                            </div>
+                            <div class="row g-4">
+                                <div class="col-md-6 required-field">
+                                    <label for="PartInventoryId" class="form-label">Lote de inventario</label>
+
+                                    <select name="PartInventoryId" class="form-select" required>
+                                        <option value="">-- Selecciona un lote --</option>
+                                        @if (ViewBag.InventoryItems != null)
+                                        {
+                                            @foreach (var item in ViewBag.InventoryItems)
+                                            {
+                                                @* item is now an anonymous type, not a PartInventory *@
+                                                var statusClass = item.ReceivedQuantity == 0 ? "text-warning" : 
+                                                                (item.ReceivedQuantity < item.OrderedQuantity ? "text-info" : "text-success");
+                                                
+                                                <option value="@item.Id" class="@statusClass">
+                                                    @item.PartDefinition.PartNumber - @item.PartDefinition.PartType
+                                                    [@item.Status]  @* This now works because Status is in the anonymous type *@
+                                                    (Pedido: @item.OrderedQuantity, Recibido: @item.ReceivedQuantity, 
+                                                    Precio: @item.Price.ToString("C") @item.CurrencyCode)
+                                                </option>
+                                            }
+                                        }
+                                    </select>
+
+                                    <!--
+                                    <select name="PartInventoryId" class="form-select" required>
+                                        <option value="">-- Selecciona un lote --</option>
+                                        @if (ViewBag.InventoryItems != null)
+                                        {
+                                            @foreach (var item in ViewBag.InventoryItems)
+                                            {
+                                                <option value="@item.Id">
+                                                    @item.PartDefinition.PartNumber - @item.PartDefinition.PartType 
+                                                    (Pendiente: @item.OrderedQuantity, En stock: @item.ReceivedQuantity, Precio: @item.Price.ToString("C"))
+                                                </option>
+                                            }
+                                        }
+                                    </select>
+                                    -->
+
+                                    <div class="form-text">Selecciona el lote específico para esta transacción</div>
+                                </div>
+                                <div class="col-md-3 required-field">
+                                    <label for="Quantity" class="form-label">Cantidad</label>
+                                    <input name="Quantity" class="form-control" type="number" min="1" step="1" placeholder="1" required>
+                                </div>
+                                <div class="col-md-3">
+                                    <label for="TransactionDate" class="form-label">Fecha de transacción</label>
+                                    <input name="TransactionDate" class="form-control" type="date" value="@DateTime.Now.ToString("yyyy-MM-dd")" required>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- INCOMING SECTION -->
+                        <div id="incoming-section" class="form-section">
+                            <div class="section-title text-success">
+                                <i class="bi bi-truck"></i>
+                                Detalles de entrada
+                            </div>
+                            <div class="row g-4">
+                                <div class="col-md-4">
+                                    <label class="form-label">Fecha de recibido</label>
+                                    <input name="ReceivedDate" class="form-control" type="date" value="@DateTime.Now.ToString("yyyy-MM-dd")" required>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Recibido por</label>
+                                    <input name="PartReceivedBy" class="form-control" placeholder="Nombre de quien recibió" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label asp-for="RackPosition" class="form-label">Posición en rack</label>
+                                    <input asp-for="RackPosition" class="form-control" placeholder="e.g., A-12, Almacen 2">
+                                    <span asp-validation-for="RackPosition" class="text-danger"></span>
+                                    <div class="form-text">Donde se almacena este lote</div>
+                                </div>
+                                <div class="col-md-6">
+                                    <label asp-for="ReceivedDate" class="form-label">Fecha de recepción</label>
+                                    <input asp-for="ReceivedDate" class="form-control" type="date" value="@DateTime.Now.ToString("yyyy-MM-dd")">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- OUTGOING SECTION -->
+                        <div id="outgoing-section" class="form-section" style="display: none;">
+                            <div class="section-title text-danger">
+                                <i class="bi bi-wrench"></i>
+                                Detalles de salida
+                            </div>
+                            <div class="row g-4">
+                                <div class="col-md-6">
+                                    <label class="form-label">Número de camión</label>
+                                    <input name="TruckNumber" class="form-control" id="TruckNumber" placeholder="e.g., TRK-042" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Reparado por</label>
+                                    <input name="RepairedBy" class="form-control" placeholder="Nombre del técnico">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Evidence Section -->
+                        <div class="form-section">
+                            <div class="section-title">
+                                <i class="bi bi-images"></i>
+                                Evidencia
+                            </div>
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <label class="form-label">Comentarios</label>
+                                    <textarea name="EvidenceComments" class="form-control" rows="3" placeholder="Notas acerca de esta transacción"></textarea>
+                                </div>
+                                <div class="col-md-12 mt-3">
+                                    <label class="form-label">Fotos</label>
+                                    <input name="PhotoFiles" class="form-control" type="file" accept="image/*" multiple>
+                                    <div class="photo-preview" id="photoPreview"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-success btn-submit">
+                            <i class="bi bi-check-circle"></i> Registrar transacción
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // === TRANSACTION TYPE TOGGLE ===
+        function updateTransactionSections() {
+            const type = document.querySelector('input[name="Type"]:checked')?.value;
+            const incomingSection = document.getElementById('incoming-section');
+            const outgoingSection = document.getElementById('outgoing-section');
+            
+            if (type === 'Incoming') {
+                incomingSection.style.display = 'block';
+                outgoingSection.style.display = 'none';
+                
+                // Update required attributes
+                document.querySelectorAll('#incoming-section input[required]').forEach(f => f.required = true);
+                document.querySelectorAll('#outgoing-section input[required]').forEach(f => f.required = false);
+            } else {
+                incomingSection.style.display = 'none';
+                outgoingSection.style.display = 'block';
+                
+                document.querySelectorAll('#incoming-section input[required]').forEach(f => f.required = false);
+                document.querySelectorAll('#outgoing-section input[required]').forEach(f => f.required = true);
+            }
+        }
+
+        document.querySelectorAll('input[name="Type"]').forEach(radio => {
+            radio.addEventListener('change', updateTransactionSections);
+        });
+        updateTransactionSections();
+
+        function setupCurrencyPreview(containerId, priceInputName, currencySelectName, previewUsdId, previewMxnId) {
+            const container = document.getElementById(containerId);
+            if (!container) {
+                console.log(`Container ${containerId} not found`);
+                return;
+            }
+            
+            const priceInput = container.querySelector(`input[name="${priceInputName}"]`);
+            const currencySelect = container.querySelector(`select[name="${currencySelectName}"]`);
+            const previewUsd = document.getElementById(previewUsdId);
+            const previewMxn = document.getElementById(previewMxnId);
+            
+            console.log(`Setup for ${containerId}:`, {
+                priceInput: priceInput ? 'found' : 'missing',
+                currencySelect: currencySelect ? 'found' : 'missing',
+                previewUsd: previewUsd ? 'found' : 'missing',
+                previewMxn: previewMxn ? 'found' : 'missing'
+            });
+            
+            if (!priceInput || !currencySelect || !previewUsd || !previewMxn) {
+                console.log(`Missing elements for ${containerId}`);
+                return;
+            }
+            
+            async function updatePreview() {
+                const amount = parseFloat(priceInput.value) || 0;
+                const currency = currencySelect.value;
+                
+                console.log(`Updating preview: amount=${amount}, currency=${currency}`);
+                
+                if (amount > 0 && currency) {
+                    try {
+                        const response = await fetch(`/api/exchange/convert?amount=${amount}&from=${currency}`);
+                        const data = await response.json();
+                        
+                        if (data.success) {
+                            if (currency === 'USD') {
+                                previewUsd.textContent = `USD: $${amount.toFixed(2)}`;
+                                previewMxn.textContent = `MXN: $${data.results.mxn.toFixed(2)}`;
+                            } else {
+                                previewMxn.textContent = `MXN: $${amount.toFixed(2)}`;
+                                previewUsd.textContent = `USD: $${data.results.usd.toFixed(2)}`;
+                            }
+                        } else {
+                            // Fallback to approximate rate if API returns error
+                            const fallbackRate = 17.20;
+                            if (currency === 'USD') {
+                                previewUsd.textContent = `USD: $${amount.toFixed(2)}`;
+                                previewMxn.textContent = `MXN: $${(amount * fallbackRate).toFixed(2)} (aprox)`;
+                            } else {
+                                previewMxn.textContent = `MXN: $${amount.toFixed(2)}`;
+                                previewUsd.textContent = `USD: $${(amount / fallbackRate).toFixed(2)} (aprox)`;
+                            }
+                        }
+                    } catch (e) {
+                        console.error('Error fetching conversion:', e);
+                        // Fallback if API call fails
+                        const fallbackRate = 17.20;
+                        if (currency === 'USD') {
+                            previewUsd.textContent = `USD: $${amount.toFixed(2)}`;
+                            previewMxn.textContent = `MXN: $${(amount * fallbackRate).toFixed(2)} (aprox)`;
+                        } else {
+                            previewMxn.textContent = `MXN: $${amount.toFixed(2)}`;
+                            previewUsd.textContent = `USD: $${(amount / fallbackRate).toFixed(2)} (aprox)`;
+                        }
+                    }
+                } else {
+                    previewUsd.textContent = 'USD: $0.00';
+                    previewMxn.textContent = 'MXN: $0.00';
+                }
+            } 
+            
+            priceInput.addEventListener('input', updatePreview);
+            currencySelect.addEventListener('change', updatePreview);
+            updatePreview(); // Initial update
+        }
+
+        // Initialize both tabs
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('DOM loaded, setting up currency previews');
+            
+            // New part tab - container ID should be 'part' (the tab pane ID)
+            setupCurrencyPreview('part', 'Price', 'Currency', 'preview-usd', 'preview-mxn');
+            
+            // New batch tab - container ID should be 'batch' (the tab pane ID)
+            setupCurrencyPreview('batch', 'Price', 'Currency', 'batch-preview-usd', 'batch-preview-mxn');
+        });
+
+        // Toggle rack position requirement based on checkbox
+        document.getElementById('IsExistingStock').addEventListener('change', function() {
+            const rackField = document.getElementById('RackPosition');
+            const rackRequiredMsg = document.querySelector('.rack-required');
+            
+            if (this.checked) {
+                rackField.setAttribute('required', 'required');
+                rackRequiredMsg.style.display = 'block';
+            } else {
+                rackField.removeAttribute('required');
+                rackRequiredMsg.style.display = 'none';
+            }
+        });
+
+        // === PHOTO PREVIEW ===
+        document.querySelector('input[name="PhotoFiles"]')?.addEventListener('change', function(e) {
+            const preview = document.getElementById('photoPreview');
+            preview.innerHTML = '';
+            
+            Array.from(e.target.files).slice(0, 10).forEach((file, index) => {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const item = document.createElement('div');
+                    item.className = 'photo-preview-item';
+                    item.innerHTML = `
+                        <img src="${e.target.result}" alt="Preview ${index + 1}">
+                        <button type="button" class="remove-photo" onclick="this.parentElement.remove()">
+                            <i class="bi bi-x"></i>
+                        </button>
+                    `;
+                    preview.appendChild(item);
+                };
+                reader.readAsDataURL(file);
+            });
+        });
+
+        // === FORM VALIDATION ===
+        (function() {
+            'use strict';
+            const forms = document.querySelectorAll('form');
+            Array.from(forms).forEach(form => {
+                form.addEventListener('submit', event => {
+                    if (!form.checkValidity()) {
+                        event.preventDefault();
+                        event.stopPropagation();
+                    }
+                    form.classList.add('was-validated');
+                }, false);
+            });
+        })();
+
+        // === Dropdown update ===
+        document.getElementById('batch-tab').addEventListener('click', async function() {
+            const dropdown = document.querySelector('select[name="PartDefinitionId"]');
+            
+            // Show loading state
+            dropdown.innerHTML = '<option value="">Cargando piezas...</option>';
+            
+            try {
+                const response = await fetch('/api/parts/definitions');
+                const definitions = await response.json();
+                
+                dropdown.innerHTML = '<option value="">-- Selecciona una pieza --</option>';
+                
+                if (definitions.length === 0) {
+                    dropdown.innerHTML += '<option value="" disabled>No hay piezas registradas</option>';
+                } else {
+                    definitions.forEach(def => {
+                        dropdown.innerHTML += `<option value="${def.id}">${def.partNumber} - ${def.partType}</option>`;
+                    });
+                }
+            } catch (error) {
+                console.error('Error loading parts:', error);
+                dropdown.innerHTML = '<option value="">Error al cargar piezas</option>';
+            }
+        });
+    </script>
+</body>
+</html>

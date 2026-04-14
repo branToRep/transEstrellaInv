@@ -1,0 +1,243 @@
+@{
+    ViewData["Title"] = "Historial de Transacciones";
+    var purchases = ViewBag.Purchases as List<PurchaseViewModel>;
+    var incoming = ViewBag.Incoming as List<TransactionViewModel>;
+    var outgoing = ViewBag.Outgoing as List<TransactionViewModel>;
+}
+
+<div class="container-fluid mt-4">
+    <h2 class="mb-4"><i class="bi bi-clock-history"></i> Historial de Transacciones</h2>
+    
+    <!-- Tabs -->
+    <ul class="nav nav-tabs mb-4" id="transactionTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="purchases-tab" data-bs-toggle="tab" data-bs-target="#purchases" type="button" role="tab">
+                <i class="bi bi-cart"></i> Compras (@purchases?.Count)
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="incoming-tab" data-bs-toggle="tab" data-bs-target="#incoming" type="button" role="tab">
+                <i class="bi bi-box-arrow-in-down text-success"></i> Entradas (@incoming?.Count)
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="outgoing-tab" data-bs-toggle="tab" data-bs-target="#outgoing" type="button" role="tab">
+                <i class="bi bi-box-arrow-up text-danger"></i> Salidas (@outgoing?.Count)
+            </button>
+        </li>
+    </ul>
+    
+    <!-- Tab Content -->
+    <div class="tab-content" id="transactionTabsContent">
+        
+        <!-- PURCHASES TAB -->
+        <div class="tab-pane fade show active" id="purchases" role="tabpanel">
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>Parte</th>
+                            <th>Descripción</th>
+                            <th>Ordenado</th>
+                            <th>Recibido</th>
+                            <th>Pendiente</th>
+                            <th>Precio</th>
+                            <th>Proveedor</th>
+                            <th>Ordenado por</th>
+                            <th>Comprado por</th>
+                            <th>Fecha Orden</th>
+                            <th>Estado</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var purchase in purchases)
+                        {
+                            <tr>
+                                <td><strong>@purchase.PartNumber</strong></td>
+                                <td>@purchase.PartType</td>
+                                <td class="text-center">@purchase.OrderedQuantity</td>
+                                <td class="text-center">@purchase.ReceivedQuantity</td>
+                                <td class="text-center @(purchase.PendingQuantity > 0 ? "text-warning fw-bold" : "")">
+                                    @purchase.PendingQuantity
+                                </td>
+                                <td>@purchase.Price.ToString("N2") @purchase.Currency</td>
+                                <td>@purchase.Seller</td>
+                                <td>@purchase.OrderedBy</td>
+                                <td>@purchase.BoughtBy</td>
+                                <td>
+                                    @if (purchase.PurchaseDate.HasValue)
+                                    {
+                                        @purchase.PurchaseDate.Value.ToString("yyyy-MM-dd")
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">—</span>
+                                    }
+                                </td>
+                                <td>
+                                    @if (purchase.ReceivedQuantity == 0)
+                                    {
+                                        <span class="badge bg-warning">Pendiente</span>
+                                    }
+                                    else if (purchase.ReceivedQuantity < purchase.OrderedQuantity)
+                                    {
+                                        <span class="badge bg-info">Parcial</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-success">Completo</span>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <!-- INCOMING TAB -->
+        <div class="tab-pane fade" id="incoming" role="tabpanel">
+            @await Html.PartialAsync("TransactionList", incoming)
+        </div>
+        
+        <!-- OUTGOING TAB -->
+        <div class="tab-pane fade" id="outgoing" role="tabpanel">
+            @await Html.PartialAsync("TransactionList", outgoing)
+        </div>
+    </div>
+</div>
+
+<!-- Comment Modal -->
+<div class="modal fade" id="commentModal" tabindex="-1" aria-labelledby="commentModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="commentModalLabel">
+                    <i class="bi bi-chat"></i> Comentario de Transacción
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="commentContent">
+                <!-- Content will be inserted here -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Photo Modal -->
+<div class="modal fade" id="photoModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Evidencia Fotográfica</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="photoGallery"></div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        // Global modal instance tracker
+        let currentModal = null;
+        
+        function showComment(transactionId, comment) {
+            console.log('showComment called for transaction:', transactionId);
+            
+            try {
+                const modalEl = document.getElementById('commentModal');
+                if (!modalEl) {
+                    console.error('Comment modal element not found!');
+                    return;
+                }
+                
+                // Clean up any existing modal state
+                if (currentModal) {
+                    currentModal.hide();
+                    currentModal.dispose();
+                    currentModal = null;
+                }
+                
+                // Remove any leftover backdrops
+                document.querySelectorAll('.modal-backdrop').forEach(b => b.remove());
+                document.body.classList.remove('modal-open');
+                
+                // Parse comment
+                let commentText = comment;
+                if (typeof comment === 'string' && comment.startsWith('"') && comment.endsWith('"')) {
+                    try {
+                        commentText = JSON.parse(comment);
+                    } catch (e) {}
+                }
+                
+                // Format comment
+                const formattedComment = (commentText || 'Sin comentario').replace(/\n/g, '<br>');
+                
+                // Update modal content
+                document.getElementById('commentContent').innerHTML = `
+                    <div class="p-3 bg-light rounded">
+                        <p class="mb-0">${formattedComment}</p>
+                    </div>
+                    <small class="text-muted mt-2 d-block">Transacción #${transactionId}</small>
+                `;
+                
+                // Create and show modal
+                currentModal = new bootstrap.Modal(modalEl);
+                currentModal.show();
+                
+            } catch (error) {
+                console.error('Error in showComment:', error);
+            }
+        }
+        
+        
+        // Photo function (already in your code)
+        function showPhotos(transactionId, photos) {
+            const gallery = document.getElementById('photoGallery');
+            gallery.innerHTML = '';
+            
+            if (!photos || photos.length === 0) {
+                gallery.innerHTML = '<p class="text-muted text-center">No hay fotos disponibles</p>';
+            } else {
+                photos.forEach(photo => {
+                    gallery.innerHTML += `
+                        <div class="mb-4 text-center">
+                            <img src="${photo.filePath}" class="img-fluid rounded shadow" style="max-height: 400px;">
+                            <p class="mt-2 text-muted">
+                                ${photo.fileName} (${(photo.fileSize / 1024).toFixed(2)} KB)
+                                <br>
+                                <small>Subido: ${new Date(photo.uploadedAt).toLocaleString()}</small>
+                            </p>
+                        </div>
+                    `;
+                });
+            }
+            
+            new bootstrap.Modal(document.getElementById('photoModal')).show();
+        }
+        
+        // Emergency close
+        function closeAllModals() {
+            document.querySelectorAll('.modal').forEach(modal => {
+                modal.classList.remove('show');
+                modal.style.display = 'none';
+            });
+            document.querySelectorAll('.modal-backdrop').forEach(backdrop => backdrop.remove());
+            document.body.classList.remove('modal-open');
+        }
+        
+        // Escape key handler
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeAllModals();
+            }
+        });
+    </script>
+}
